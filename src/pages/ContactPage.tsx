@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MapPin, Phone, Mail, Clock, Send, Check, Loader } from 'lucide-react'
 import { API_URL } from '../config/api'
 
@@ -7,17 +7,28 @@ export default function ContactPage() {
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [slowWarning, setSlowWarning] = useState(false)
+
+  useEffect(() => {
+    fetch(`${API_URL.replace('/api', '')}/health`).catch(() => {})
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSlowWarning(false)
+    const slowTimer = setTimeout(() => setSlowWarning(true), 8000)
     try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 70000)
       const res = await fetch(`${API_URL}/send-contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
+        signal: controller.signal,
       })
+      clearTimeout(timeout)
       if (res.ok) {
         setSent(true)
       } else {
@@ -25,8 +36,14 @@ export default function ContactPage() {
         throw new Error(data.error || 'Erreur lors de l\'envoi')
       }
     } catch (err: any) {
-      setError(err.message || 'Une erreur est survenue. Réessayez.')
+      if (err.name === 'AbortError') {
+        setError('Délai dépassé. Le serveur est peut-être en démarrage, réessayez dans 30 secondes.')
+      } else {
+        setError(err.message || 'Une erreur est survenue. Réessayez.')
+      }
     } finally {
+      clearTimeout(slowTimer)
+      setSlowWarning(false)
       setLoading(false)
     }
   }
@@ -144,8 +161,11 @@ export default function ContactPage() {
               {error && (
                 <div className="contact-error">⚠️ {error}</div>
               )}
+              {slowWarning && (
+                <div className="contact-error" style={{background:'#1a1200',borderColor:'#c9a84c',color:'#c9a84c'}}>⏳ Démarrage du serveur en cours, patientez 30 secondes…</div>
+              )}
               <button type="submit" className="btn-primary btn-full" disabled={loading}>
-                {loading ? <><Loader size={16} className="spin" /> Envoi en cours…</> : <><Send size={16} /> Envoyer le message</>}
+                {loading ? <><Loader size={16} className="spin" /> {slowWarning ? 'Démarrage serveur…' : 'Envoi en cours…'}</> : <><Send size={16} /> Envoyer le message</>}
               </button>
             </form>
           )}
