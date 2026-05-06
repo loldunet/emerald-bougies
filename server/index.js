@@ -13,6 +13,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Stockage messages en mémoire (persiste tant que le serveur tourne)
+let contactMessages = [];
+
 const app = express();
 
 // CORS - autoriser le frontend OVH + dev local
@@ -32,6 +35,15 @@ app.post('/api/send-contact', async (req, res) => {
     if (!name || !email || !subject || !message) {
       return res.status(400).json({ error: 'Champs manquants' });
     }
+
+    // Sauvegarder le message
+    const newMsg = {
+      id: `MSG-${Date.now()}`,
+      date: new Date().toISOString(),
+      name, email, subject, message,
+      read: false,
+    };
+    contactMessages.unshift(newMsg);
 
     await transporter.sendMail({
       from: `"Emerald Bougies" <${process.env.SMTP_FROM}>`,
@@ -327,6 +339,26 @@ app.post('/api/send-invoice', async (req, res) => {
     console.error('Erreur envoi facture:', err.message);
     res.status(500).json({ error: err.message });
   }
+});
+
+// Routes admin messages (protégées par clé)
+const ADMIN_KEY = process.env.ADMIN_KEY || 'emerald2024';
+
+app.get('/api/admin/messages', (req, res) => {
+  if (req.headers['x-admin-key'] !== ADMIN_KEY) return res.status(401).json({ error: 'Non autorisé' });
+  res.json(contactMessages);
+});
+
+app.patch('/api/admin/messages/:id/read', (req, res) => {
+  if (req.headers['x-admin-key'] !== ADMIN_KEY) return res.status(401).json({ error: 'Non autorisé' });
+  contactMessages = contactMessages.map(m => m.id === req.params.id ? { ...m, read: true } : m);
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/messages/:id', (req, res) => {
+  if (req.headers['x-admin-key'] !== ADMIN_KEY) return res.status(401).json({ error: 'Non autorisé' });
+  contactMessages = contactMessages.filter(m => m.id !== req.params.id);
+  res.json({ ok: true });
 });
 
 // Health check pour Render

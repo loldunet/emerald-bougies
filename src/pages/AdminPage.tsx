@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, ShoppingBag, Package, BarChart2, LogOut,
@@ -978,14 +978,46 @@ ${order.items.map(item => `
 }
 
 function MessagesTab() {
-  const { messages, markRead, deleteMessage } = useAdmin()
+  const [messages, setMessages] = useState<ContactMessage[]>([])
+  const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<ContactMessage | null>(null)
   const [replying, setReplying] = useState(false)
 
-  const handleOpen = (msg: ContactMessage) => {
+  const ADMIN_KEY = 'emerald2024'
+  const BASE = API_URL.replace('/api', '')
+
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch(`${BASE}/api/admin/messages`, {
+        headers: { 'x-admin-key': ADMIN_KEY },
+      })
+      if (res.ok) setMessages(await res.json())
+    } catch {}
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchMessages() }, [])
+
+  const handleOpen = async (msg: ContactMessage) => {
     setSelected(msg)
     setReplying(false)
-    if (!msg.read) markRead(msg.id)
+    if (!msg.read) {
+      await fetch(`${BASE}/api/admin/messages/${msg.id}/read`, {
+        method: 'PATCH',
+        headers: { 'x-admin-key': ADMIN_KEY },
+      }).catch(() => {})
+      setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, read: true } : m))
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    await fetch(`${BASE}/api/admin/messages/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-key': ADMIN_KEY },
+    }).catch(() => {})
+    setMessages(prev => prev.filter(m => m.id !== id))
+    setSelected(null)
+    setReplying(false)
   }
 
   const SUBJECT_COLOR: Record<string, string> = {
@@ -1006,7 +1038,8 @@ function MessagesTab() {
             {messages.filter(m => !m.read).length} non lus
           </span>
         </div>
-        {messages.length === 0 && (
+        {loading && <div className="admin-empty" style={{ padding: '40px 20px' }}>Chargement…</div>}
+        {!loading && messages.length === 0 && (
           <div className="admin-empty" style={{ padding: '40px 20px' }}>Aucun message reçu</div>
         )}
         {messages.map(msg => (
@@ -1060,7 +1093,7 @@ function MessagesTab() {
                 </button>
                 <button
                   className="admin-action-btn admin-action-btn--reset"
-                  onClick={() => { deleteMessage(selected.id); setSelected(null); setReplying(false) }}
+                  onClick={() => handleDelete(selected.id)}
                 >
                   <Trash2 size={14} /> Supprimer
                 </button>
