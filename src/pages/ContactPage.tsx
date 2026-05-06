@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { MapPin, Phone, Mail, Clock, Send, Check, Loader } from 'lucide-react'
 import { API_URL } from '../config/api'
+import { useAdmin } from '../context/AdminContext'
 
 export default function ContactPage() {
+  const { saveMessage } = useAdmin()
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -30,6 +32,7 @@ export default function ContactPage() {
       })
       clearTimeout(timeout)
       if (res.ok) {
+        saveMessage({ name: form.name, email: form.email, subject: form.subject, message: form.message })
         setSent(true)
       } else {
         const data = await res.json().catch(() => ({}))
