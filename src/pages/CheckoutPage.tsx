@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Lock, Check, ArrowLeft, ShieldCheck } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useAdmin } from '../context/AdminContext'
+import { API_URL } from '../config/api'
 
 function PaymentForm({ orderTotal, onSuccess, onBack, formData }: { 
   orderTotal: number; 
@@ -122,7 +123,7 @@ export default function CheckoutPage() {
     setOrderId(id)
     setOrdered(true)
     clearCart()
-    fetch('/api/send-order-confirmation', {
+    fetch(`${API_URL}/send-order-confirmation`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

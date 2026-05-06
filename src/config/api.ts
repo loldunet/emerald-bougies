@@ -11,8 +11,8 @@
 // === OPTION 3: OVH uniquement (Sans backend Node.js) ===
 // Emails via EmailJS (contact + factures). Voir CONFIG_EMAILJS.md
 
-// Configuration actuelle - MODIFIEZ ICI selon votre deploiement:
-export const API_URL = '/api'
+// Configuration actuelle - Backend sur Render.com
+export const API_URL = 'https://emerald-bougies-api.onrender.com/api'
 
 // Helper pour construire les URLs d'API
 export const apiUrl = (endpoint: string) => `${API_URL}${endpoint}`

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useAdmin, type Order, type OrderStatus, type ContactMessage } from '../context/AdminContext'
 import { PRODUCTS } from '../data/products'
+import { API_URL } from '../config/api'
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: typeof Clock }> = {
   pending:    { label: 'En attente',    color: '#f59e0b', icon: Clock },
@@ -171,7 +172,7 @@ function OrderDetail({ order, onClose }: { order: Order; onClose: () => void }) 
     setSendingEmail(true)
     setEmailError(null)
     try {
-      const res = await fetch('/api/send-status-update', {
+      const res = await fetch(`${API_URL}/send-status-update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -546,7 +547,7 @@ function ReplyForm({ msg, onClose }: { msg: ContactMessage; onClose: () => void 
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/send-reply', {
+      const res = await fetch(`${API_URL}/send-reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -641,7 +642,7 @@ function InvoicesTab() {
     setInvoiceError(null)
     setInvoiceSent(null)
     try {
-      const res = await fetch('/api/send-invoice', {
+      const res = await fetch(`${API_URL}/send-invoice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
