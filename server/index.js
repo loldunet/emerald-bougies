@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const PDFDocument = require('pdfkit');
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -273,10 +274,101 @@ app.post('/api/send-status-update', async (req, res) => {
   }
 });
 
+const generateInvoicePDF = (data) => {
+  return new Promise((resolve, reject) => {
+    const { customer, orderId, date, status, items, total, address, tracking } = data;
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const buffers = [];
+    doc.on('data', b => buffers.push(b));
+    doc.on('end', () => resolve(Buffer.concat(buffers)));
+    doc.on('error', reject);
+
+    const GOLD = '#c9a84c';
+    const DARK = '#0d0d0d';
+    const W = 495;
+
+    // En-tête fond sombre
+    doc.rect(0, 0, 595, 120).fill(DARK);
+    doc.fillColor(GOLD).fontSize(22).font('Helvetica-Bold')
+      .text("Emerald' Bougies", 50, 35);
+    doc.fillColor('#999').fontSize(9).font('Helvetica')
+      .text('28 Rue du Tampon — 97430 La Réunion', 50, 62)
+      .text('contact@emerald-bougies.re  |  emerald-bougies.re', 50, 75);
+    doc.fillColor(GOLD).fontSize(28).font('Helvetica-Bold')
+      .text('FACTURE', 400, 40, { align: 'right', width: 145 });
+
+    // Ligne dorée séparatrice
+    doc.moveTo(50, 130).lineTo(545, 130).strokeColor(GOLD).lineWidth(1.5).stroke();
+
+    // Infos commande
+    let y = 150;
+    doc.fillColor('#333').fontSize(9).font('Helvetica-Bold').text('N° COMMANDE', 50, y);
+    doc.fillColor(GOLD).fontSize(13).font('Helvetica-Bold').text(orderId, 50, y + 12);
+    doc.fillColor('#333').fontSize(9).font('Helvetica-Bold').text('DATE', 200, y);
+    doc.fillColor('#222').fontSize(11).font('Helvetica').text(date, 200, y + 12);
+    doc.fillColor('#333').fontSize(9).font('Helvetica-Bold').text('STATUT', 350, y);
+    doc.fillColor('#222').fontSize(11).font('Helvetica').text(status, 350, y + 12);
+
+    // Facturer à
+    y = 210;
+    doc.moveTo(50, y).lineTo(545, y).strokeColor('#e0e0e0').lineWidth(0.5).stroke();
+    y += 15;
+    doc.fillColor('#333').fontSize(9).font('Helvetica-Bold').text('FACTURER À', 50, y);
+    doc.fillColor('#111').fontSize(11).font('Helvetica-Bold').text(customer, 50, y + 13);
+    doc.fillColor('#444').fontSize(10).font('Helvetica').text(address, 50, y + 27);
+    if (tracking) {
+      doc.fillColor('#333').fontSize(9).font('Helvetica-Bold').text('SUIVI', 350, y);
+      doc.fillColor(GOLD).fontSize(10).font('Helvetica').text(tracking, 350, y + 13);
+    }
+
+    // Tableau articles
+    y += 70;
+    doc.moveTo(50, y).lineTo(545, y).strokeColor(GOLD).lineWidth(1).stroke();
+    y += 8;
+    doc.fillColor('#666').fontSize(9).font('Helvetica-Bold');
+    doc.text('PRODUIT', 50, y);
+    doc.text('QTÉ', 360, y, { width: 60, align: 'center' });
+    doc.text('PRIX UNIT.', 420, y, { width: 60, align: 'right' });
+    doc.text('TOTAL', 480, y, { width: 65, align: 'right' });
+    y += 14;
+    doc.moveTo(50, y).lineTo(545, y).strokeColor('#ddd').lineWidth(0.5).stroke();
+    y += 8;
+
+    items.forEach((item, idx) => {
+      if (idx % 2 === 0) doc.rect(50, y - 4, W, 22).fill('#f9f9f9');
+      doc.fillColor('#111').fontSize(10).font('Helvetica').text(item.name, 52, y, { width: 290 });
+      doc.text(String(item.qty), 360, y, { width: 60, align: 'center' });
+      doc.text(`${item.price.toFixed(2)} €`, 420, y, { width: 60, align: 'right' });
+      doc.fillColor(GOLD).font('Helvetica-Bold').text(`${(item.price * item.qty).toFixed(2)} €`, 480, y, { width: 65, align: 'right' });
+      y += 22;
+    });
+
+    // Total
+    y += 10;
+    doc.moveTo(50, y).lineTo(545, y).strokeColor(GOLD).lineWidth(1).stroke();
+    y += 12;
+    doc.rect(350, y - 4, 195, 28).fill(DARK);
+    doc.fillColor('#999').fontSize(10).font('Helvetica').text('TOTAL TTC', 355, y + 2);
+    doc.fillColor(GOLD).fontSize(14).font('Helvetica-Bold').text(`${total.toFixed(2)} €`, 480, y, { width: 60, align: 'right' });
+
+    // Pied de page
+    y += 60;
+    doc.moveTo(50, y).lineTo(545, y).strokeColor('#e0e0e0').lineWidth(0.5).stroke();
+    y += 12;
+    doc.fillColor('#999').fontSize(8).font('Helvetica')
+      .text("Merci pour votre confiance ! — Emerald' Bougies — SIRET : XXXXXXXXXXXXXXX", 50, y, { align: 'center', width: W });
+
+    doc.end();
+  });
+};
+
 app.post('/api/send-invoice', async (req, res) => {
   try {
     const { to, customer, orderId, date, status, items, total, address, tracking } = req.body;
     if (!to || !orderId) return res.status(400).json({ error: 'Champs manquants' });
+
+    // Générer le PDF
+    const pdfBuffer = await generateInvoicePDF({ customer, orderId, date, status, items, total, address, tracking });
 
     const itemsHtml = items.map(i => `
       <tr>
@@ -297,41 +389,41 @@ app.post('/api/send-invoice', async (req, res) => {
           </div>
           <div style="padding:32px 40px">
             <p>Bonjour <strong style="color:#c9a84c">${customer}</strong>,</p>
-            <p style="color:#999">Veuillez trouver ci-dessous le récapitulatif de votre commande.</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
-              <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:16px">
-                <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.1em">N° Commande</p>
+            <p style="color:#999">Veuillez trouver votre facture en pièce jointe PDF.</p>
+            <div style="display:flex;gap:16px;margin-bottom:24px">
+              <div style="flex:1;background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:16px">
+                <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase">N° Commande</p>
                 <p style="margin:0;color:#c9a84c;font-weight:bold">${orderId}</p>
               </div>
-              <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:16px">
-                <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.1em">Date</p>
+              <div style="flex:1;background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:16px">
+                <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase">Date</p>
                 <p style="margin:0">${date}</p>
               </div>
             </div>
             <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-              <thead>
-                <tr>
-                  <th style="text-align:left;padding-bottom:10px;color:#666;font-size:12px;text-transform:uppercase;border-bottom:1px solid #c9a84c">Produit</th>
-                  <th style="text-align:center;padding-bottom:10px;color:#666;font-size:12px;text-transform:uppercase;border-bottom:1px solid #c9a84c">Qté</th>
-                  <th style="text-align:right;padding-bottom:10px;color:#666;font-size:12px;text-transform:uppercase;border-bottom:1px solid #c9a84c">Prix</th>
-                </tr>
-              </thead>
+              <thead><tr>
+                <th style="text-align:left;padding-bottom:10px;color:#666;font-size:12px;text-transform:uppercase;border-bottom:1px solid #c9a84c">Produit</th>
+                <th style="text-align:center;padding-bottom:10px;color:#666;font-size:12px;text-transform:uppercase;border-bottom:1px solid #c9a84c">Qté</th>
+                <th style="text-align:right;padding-bottom:10px;color:#666;font-size:12px;text-transform:uppercase;border-bottom:1px solid #c9a84c">Prix</th>
+              </tr></thead>
               <tbody>${itemsHtml}</tbody>
-              <tfoot>
-                <tr><td colspan="2" style="padding-top:14px;color:#999;font-size:13px">Statut : ${status}</td><td style="padding-top:14px;color:#c9a84c;text-align:right;font-size:20px;font-weight:bold">${total.toFixed(2)} €</td></tr>
-              </tfoot>
+              <tfoot><tr>
+                <td colspan="2" style="padding-top:14px;color:#999;font-size:13px">Total</td>
+                <td style="padding-top:14px;color:#c9a84c;text-align:right;font-size:20px;font-weight:bold">${total.toFixed(2)} €</td>
+              </tr></tfoot>
             </table>
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:16px;margin-bottom:16px">
-              <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.1em">Adresse de livraison</p>
-              <p style="margin:0">${address}</p>
-            </div>
-            ${tracking ? `<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:16px"><p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase">Numéro de suivi</p><p style="margin:0;color:#c9a84c">${tracking}</p></div>` : ''}
+            <p style="color:#666;font-size:12px">📎 La facture PDF est jointe à cet email.</p>
           </div>
           <div style="padding:20px 40px;border-top:1px solid #1e1e1e;text-align:center">
             <p style="margin:0;color:#444;font-size:12px">© Emerald' Bougies — 28 rue du Tampon, 97430 La Réunion</p>
           </div>
         </div>
       `,
+      attachments: [{
+        filename: `Facture-${orderId}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      }],
     });
 
     res.json({ ok: true });
