@@ -249,6 +249,11 @@ app.post('/api/send-status-update', async (req, res) => {
             </div>
             <p>Nous vous remercions pour votre confiance et serions ravis de recevoir votre avis sur nos produits.</p>
             <p>Allumez votre bougie… et laissez la magie opérer 🕯️</p>
+            <div style="text-align:center;margin:28px 0;padding:24px;background:#111;border-radius:12px;border:1px solid #1e1e1e">
+              <p style="margin:0 0 6px;color:#c9a84c;font-weight:bold;font-size:15px">⭐ Votre avis compte !</p>
+              <p style="margin:0 0 16px;color:#999;font-size:13px">Partagez votre expérience et aidez d'autres clients à découvrir nos bougies.</p>
+              <a href="https://fr.trustpilot.com/evaluate/emerald-bougies.re" target="_blank" style="display:inline-block;padding:12px 28px;background:#00b67a;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px">⭐ Laisser un avis sur Trustpilot</a>
+            </div>
             <hr style="border:none;border-top:1px solid #333;margin:24px 0"/>
             <p style="color:#666;font-size:12px">Merci pour votre confiance !<br/>— L'équipe Emerald' Bougies</p>
           </div>
@@ -267,6 +272,21 @@ app.post('/api/send-status-update', async (req, res) => {
     });
     
     console.log('✅ [send-status-update] Email envoyé:', info.messageId);
+
+    // Envoi invitation Trustpilot automatique à la livraison
+    if (status === 'delivered') {
+      await transporter.sendMail({
+        from: `"Emerald' Bougies" <${process.env.SMTP_FROM}>`,
+        to: 'emerald-bougies.re+64ad94766f@invite.trustpilot.com',
+        subject: `Invitation avis — ${name} — ${orderId}`,
+        html: `
+          <p>Nom : ${name}</p>
+          <p>Email : ${to}</p>
+          <p>Commande : ${orderId}</p>
+        `,
+      }).catch(e => console.error('Trustpilot invite error:', e.message));
+    }
+
     res.json({ ok: true, messageId: info.messageId });
   } catch (err) {
     console.error('❌ [send-status-update] Erreur envoi email:', err.message);
