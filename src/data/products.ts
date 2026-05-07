@@ -24,7 +24,7 @@ export const PRODUCTS: Product[] = [
     id: 1,
     name: 'Dragon Noir',
     subtitle: 'Protection & Mystère',
-    price: 25,
+    price: 35,
     rating: 5,
     reviews: 48,
     stone: 'Obsidienne',
