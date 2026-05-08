@@ -1,12 +1,37 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { COLLECTIONS, TESTIMONIALS } from '../data/products'
+
+// Hook pour animer les sections au scroll
+function useScrollAnimation() {
+  const observerRef = useRef<IntersectionObserver | null>(null)
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible')
+          }
+        })
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+    )
+
+    const sections = document.querySelectorAll('.fade-in-section')
+    sections.forEach((section) => observerRef.current?.observe(section))
+
+    return () => observerRef.current?.disconnect()
+  }, [])
+}
 
 export default function HomePage() {
   const [testIdx, setTestIdx] = useState(0)
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
+
+  useScrollAnimation()
 
   return (
     <>
@@ -106,7 +131,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== FEATURES (trust reassurance) ===== */}
-      <section className="features-trust">
+      <section className="features-trust fade-in-section">
         <div className="features-trust__item">
           <span className="features-trust__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -165,7 +190,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== COLLECTIONS ===== */}
-      <section className="collections-section">
+      <section className="collections-section fade-in-section">
         <div className="section-header section-header--centered">
           <h2 className="section-title-text">✦ Nos Univers ✦</h2>
           <p className="section-sub section-sub--centered">Plongez dans nos univers et laissez les pierres vous guider</p>
@@ -189,13 +214,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mid-banner">
+      <section className="mid-banner fade-in-section">
         <img src="/banniere-mid.jpg" alt="Chaque bougie est unique" className="mid-banner__img" />
       </section>
 
 
       {/* ===== TESTIMONIALS ===== */}
-      <section className="testimonials-section">
+      <section className="testimonials-section fade-in-section">
         <div className="section-header">
           <h2 className="section-title-text">✦ Ils nous font confiance ✦</h2>
         </div>
@@ -230,7 +255,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== NEWSLETTER ===== */}
-      <section className="newsletter-section">
+      <section className="newsletter-section fade-in-section">
         <div className="newsletter__inner">
           <span className="newsletter__icon">✉️</span>
           <h3>Rejoignez notre communauté</h3>

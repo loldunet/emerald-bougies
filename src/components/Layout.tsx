@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import CartPanel from './CartPanel'
+import FloatingLeaves from './FloatingLeaves'
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { count, setCartOpen, cartOpen } = useCart()
@@ -90,6 +91,24 @@ export default function Layout({ children }: { children: ReactNode }) {
           <Link to="/wishlist" className="icon-btn" title="Wishlist">
             <Heart size={19} />
           </Link>
+          {/* Drapeau La Réunion */}
+          <span className="icon-btn reunion-flag" title="Made in La Réunion">
+            <svg viewBox="0 0 36 24" width="28" height="19">
+              {/* Fond bleu */}
+              <rect width="36" height="24" fill="#002395"/>
+              {/* Bande jaune horizontale */}
+              <rect x="0" y="11" width="36" height="2" fill="#FFD700"/>
+              {/* Bande jaune verticale */}
+              <rect x="17" y="0" width="2" height="24" fill="#FFD700"/>
+              {/* Losange central blanc */}
+              <path d="M18 6 L22 12 L18 18 L14 12 Z" fill="white"/>
+              {/* 4 losanges rouges aux coins */}
+              <path d="M8 2 L10 6 L6 6 Z" fill="#ED2939"/>
+              <path d="M28 2 L30 6 L26 6 Z" fill="#ED2939"/>
+              <path d="M8 22 L10 18 L6 18 Z" fill="#ED2939"/>
+              <path d="M28 22 L30 18 L26 18 Z" fill="#ED2939"/>
+            </svg>
+          </span>
           <button onClick={() => setCartOpen(true)} className="icon-btn cart-btn" title="Panier">
             <ShoppingBag size={19} />
             {count > 0 && <span className="cart-badge">{count}</span>}
@@ -122,6 +141,9 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       {/* CART PANEL */}
       <CartPanel open={cartOpen} onClose={() => setCartOpen(false)} />
+
+      {/* PARTICULES DORÉES */}
+      <FloatingLeaves />
 
       {/* PAGE CONTENT */}
       <main>{children}</main>
