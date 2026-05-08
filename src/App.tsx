@@ -20,6 +20,7 @@ import MentionsLegalesPage from './pages/MentionsLegalesPage'
 import LivraisonPage from './pages/LivraisonPage'
 import CgvPage from './pages/CgvPage'
 import RemboursementPage from './pages/RemboursementPage'
+import { PaymentSuccessPage, PaymentErrorPage, PaymentCancelPage, PaymentConfirmationPage } from './pages/PaymentReturnPage'
 
 export default function App() {
   const [splash, setSplash] = useState(true)
@@ -34,6 +35,10 @@ export default function App() {
         <Routes>
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout/success" element={<PaymentSuccessPage />} />
+          <Route path="/checkout/error" element={<PaymentErrorPage />} />
+          <Route path="/checkout/cancel" element={<PaymentCancelPage />} />
+          <Route path="/checkout/confirmation" element={<PaymentConfirmationPage />} />
           <Route path="/*" element={
             <Layout>
               <Routes>

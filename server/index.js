@@ -14,8 +14,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Stockage messages en mémoire (persiste tant que le serveur tourne)
+// Stockage messages et commandes en mémoire (persiste tant que le serveur tourne)
 let contactMessages = [];
+let pendingOrders = new Map(); // orderId -> orderData (en attente de paiement)
 
 const app = express();
 
@@ -472,6 +473,194 @@ app.delete('/api/admin/messages/:id', (req, res) => {
   contactMessages = contactMessages.filter(m => m.id !== req.params.id);
   res.json({ ok: true });
 });
+
+// ========== ROUTES PAYBOX ==========
+const crypto = require('crypto');
+
+// Initialiser un paiement Paybox
+app.post('/api/paybox/init', async (req, res) => {
+  try {
+    const { orderId, amount, email, firstName, lastName, returnUrl, cancelUrl } = req.body;
+    
+    if (!orderId || !amount || !email) {
+      return res.status(400).json({ error: 'Champs manquants' });
+    }
+
+    // Sauvegarder la commande en attente
+    pendingOrders.set(orderId, {
+      ...req.body,
+      createdAt: Date.now(),
+      status: 'pending'
+    });
+
+    // Configuration Paybox (à remplacer par vos vraies credentials)
+    const PBX_SITE = process.env.PAYBOX_SITE || '1999888'; // Numéro de site de test
+    const PBX_RANG = process.env.PAYBOX_RANG || '32';    // Numéro de rang
+    const PBX_IDENTIFIANT = process.env.PAYBOX_IDENTIFIANT || '107904482'; // Identifiant
+    const PBX_CLE = process.env.PAYBOX_CLE || '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF'; // Clé HMAC (64 caractères hex)
+    
+    // URL Paybox (test ou production)
+    const isProd = process.env.NODE_ENV === 'production';
+    const PAYBOX_URL = isProd 
+      ? 'https://tpeweb.e-transactions.fr/payment/payment.php'
+      : 'https://preprod-tpeweb.e-transactions.fr/payment/payment.php';
+
+    // Paramètres Paybox
+    const params = {
+      PBX_SITE: PBX_SITE,
+      PBX_RANG: PBX_RANG,
+      PBX_IDENTIFIANT: PBX_IDENTIFIANT,
+      PBX_TOTAL: Math.round(amount * 100).toString(), // Montant en centimes
+      PBX_DEVISE: '978', // EUR
+      PBX_CMD: orderId,
+      PBX_PORTEUR: email,
+      PBX_RETOUR: 'Mt:M;Ref:R;Auto:A;Erreur:E;Sign:K', // Format de retour
+      PBX_HASH: 'SHA512',
+      PBX_TIME: new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14),
+      PBX_EFFECTUE: returnUrl || `${process.env.FRONTEND_URL}/checkout/success?order=${orderId}`,
+      PBX_REFUSE: cancelUrl || `${process.env.FRONTEND_URL}/checkout/error?order=${orderId}`,
+      PBX_ANNULE: cancelUrl || `${process.env.FRONTEND_URL}/checkout/cancel?order=${orderId}`,
+      PBX_ATTENTE: returnUrl || `${process.env.FRONTEND_URL}/checkout/pending?order=${orderId}`,
+      PBX_LANGUE: 'FRA',
+      PBX_TYPEPAIEMENT: 'CARTE', // Carte bancaire
+      PBX_TYPECARTE: 'CB,VISA,MASTERCARD',
+    };
+
+    // Construction de la chaîne à signer
+    const message = Object.keys(params)
+      .sort()
+      .map(k => `${k}=${params[k]}`)
+      .join('&');
+
+    // Signature HMAC SHA512
+    const signature = crypto
+      .createHmac('sha512', Buffer.from(PBX_CLE, 'hex'))
+      .update(message)
+      .digest('hex')
+      .toUpperCase();
+
+    res.json({
+      url: PAYBOX_URL,
+      params: params,
+      signature: signature,
+      formData: {
+        ...params,
+        PBX_HMAC: signature
+      }
+    });
+  } catch (err) {
+    console.error('Erreur init Paybox:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Vérifier le retour Paybox (callback ou redirect)
+app.post('/api/paybox/verify', async (req, res) => {
+  try {
+    const { orderId, auto, erreur, ref } = req.body;
+    
+    const order = pendingOrders.get(orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Commande non trouvée' });
+    }
+
+    // Vérifier le code erreur Paybox
+    // 00000 = succès
+    if (erreur === '00000') {
+      order.status = 'paid';
+      order.payboxRef = ref;
+      order.payboxAuto = auto;
+      pendingOrders.set(orderId, order);
+      
+      // Envoyer email de confirmation
+      try {
+        await transporter.sendMail({
+          from: `"Emerald' Bougies" <${process.env.SMTP_FROM}>`,
+          to: order.email,
+          subject: `✅ Paiement confirmé — Commande ${orderId}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0d0d0d;color:#f5e6c8;padding:32px;border-radius:12px;border:1px solid #c9a84c">
+              <h2 style="color:#10b981">✅ Paiement confirmé</h2>
+              <p>Bonjour ${order.firstName},</p>
+              <p>Votre paiement de <strong style="color:#c9a84c">${order.amount.toFixed(2)} €</strong> a été accepté.</p>
+              <p>Numéro de commande : <strong style="color:#c9a84c">${orderId}</strong></p>
+              <p>Nous préparons votre colis avec soin. Vous recevrez un email dès l'expédition.</p>
+            </div>
+          `
+        });
+      } catch (e) {
+        console.error('Erreur email confirmation:', e);
+      }
+
+      res.json({ 
+        success: true, 
+        orderId,
+        message: 'Paiement confirmé',
+        order: { ...order, items: undefined } // Ne pas renvoyer tous les détails
+      });
+    } else {
+      order.status = 'failed';
+      order.payboxError = erreur;
+      pendingOrders.set(orderId, order);
+      
+      res.json({ 
+        success: false, 
+        orderId,
+        error: erreur,
+        message: getPayboxErrorMessage(erreur)
+      });
+    }
+  } catch (err) {
+    console.error('Erreur verify Paybox:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Obtenir le statut d'une commande
+app.get('/api/paybox/status/:orderId', (req, res) => {
+  const order = pendingOrders.get(req.params.orderId);
+  if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+  res.json({ status: order.status, orderId: req.params.orderId });
+});
+
+// Fonction helper pour les messages d'erreur Paybox
+function getPayboxErrorMessage(code) {
+  const errors = {
+    '00000': 'Paiement réussi',
+    '00001': 'La connexion au centre d\'autorisation a échoué',
+    '00002': 'Une erreur de traitement est survenue',
+    '00003': 'Erreur interne',
+    '00004': 'Numéro de porteur invalide',
+    '00005': 'Date de validité dépassée',
+    '00006': 'CVV invalide',
+    '00007': 'Carte refusée',
+    '00008': 'Solde insuffisant',
+    '00009': 'Carte volée ou perdue',
+    '00010': 'Carte non autorisée',
+    '00011': 'Opposition de la banque',
+    '00014': 'Transaction refusée',
+    '00015': 'Transaction annulée par client',
+    '00016': 'Transaction dupliquée',
+    '00017': 'Opération abandonnée',
+    '00018': 'Transaction non trouvée',
+    '00019': 'Montant invalide',
+    '00020': 'Devise invalide',
+    '00021': 'Numéro de site invalide',
+    '00029': 'Timeout',
+    '00030': 'Erreur de format',
+  };
+  return errors[code] || `Erreur de paiement (code ${code})`;
+}
+
+// Nettoyer les anciennes commandes (plus de 24h)
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, order] of pendingOrders) {
+    if (now - order.createdAt > 24 * 60 * 60 * 1000) {
+      pendingOrders.delete(id);
+    }
+  }
+}, 60 * 60 * 1000); // Toutes les heures
 
 // Health check pour Render
 app.get('/health', (req, res) => res.json({ status: 'ok' }));

@@ -1,49 +1,103 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Lock, Check, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { Lock, Check, ArrowLeft, ShieldCheck, Loader } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useAdmin } from '../context/AdminContext'
 import { API_URL } from '../config/api'
 
-function PaymentForm({ orderTotal, onSuccess, onBack, formData }: { 
+function PaymentForm({ 
+  orderTotal, 
+  onSuccess, 
+  onBack, 
+  formData, 
+  items,
+  orderId,
+  shippingCost
+}: { 
   orderTotal: number; 
   onSuccess: () => void; 
   onBack: () => void;
   formData: any;
+  items: any[];
+  orderId: string;
+  shippingCost: number;
 }) {
   const [loading, setLoading] = useState(false)
-  const [simulated, setSimulated] = useState(false)
+  const [payboxData, setPayboxData] = useState<any>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  // Soumission auto vers Paybox dès qu'on a les données
+  useEffect(() => {
+    if (payboxData && formRef.current) {
+      formRef.current.submit()
+    }
+  }, [payboxData])
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setLoading(false)
-    setSimulated(true)
-    setTimeout(() => onSuccess(), 1500)
+
+    try {
+      // Initialiser le paiement Paybox
+      const response = await fetch(`${API_URL}/paybox/init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          amount: orderTotal,
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+          shippingCost,
+          returnUrl: `${window.location.origin}/checkout/success`,
+          cancelUrl: `${window.location.origin}/checkout/cancel`,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'initialisation du paiement')
+      }
+
+      const data = await response.json()
+      setPayboxData(data)
+    } catch (err) {
+      console.error('Erreur Paybox:', err)
+      alert('Erreur lors de l\'initialisation du paiement. Veuillez réessayer.')
+      setLoading(false)
+    }
   }
 
-  if (simulated) {
+  // Si on a les données Paybox, afficher le formulaire auto-submit
+  if (payboxData) {
     return (
       <div className="checkout-section" style={{ textAlign: 'center', padding: '40px 20px' }}>
-        <div style={{ 
-          width: 60, 
-          height: 60, 
-          borderRadius: '50%', 
-          background: 'linear-gradient(135deg, #c9a84c, #10b981)', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          margin: '0 auto 20px',
-          animation: 'pulse 1s ease-in-out'
-        }}>
-          <Check size={30} color="#0d0d0d" />
-        </div>
+        <Loader size={40} className="spin" style={{ color: '#c9a84c', margin: '0 auto 20px' }} />
         <h3 style={{ color: '#c9a84c', marginBottom: '12px' }}>
-          <ShieldCheck size={18} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-          Commande confirmée !
+          Redirection vers la banque...
         </h3>
-        <p style={{ color: '#999' }}>Redirection vers la confirmation...</p>
+        <p style={{ color: '#999', marginBottom: '20px' }}>
+          Veuillez patienter, nous vous redirigeons vers le serveur de paiement sécurisé.
+        </p>
+        <form 
+          ref={formRef}
+          method="POST" 
+          action={payboxData.url}
+          style={{ display: 'none' }}
+        >
+          {Object.entries(payboxData.formData).map(([key, value]) => (
+            <input key={key} type="hidden" name={key} value={String(value)} />
+          ))}
+        </form>
+        <p style={{ color: '#666', fontSize: '12px' }}>
+          Si vous n'êtes pas redirigé automatiquement, 
+          <button 
+            onClick={() => formRef.current?.submit()}
+            style={{ background: 'none', border: 'none', color: '#c9a84c', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            cliquez ici
+          </button>
+        </p>
       </div>
     )
   }
@@ -59,23 +113,68 @@ function PaymentForm({ orderTotal, onSuccess, onBack, formData }: {
         marginBottom: '24px'
       }}>
         <h3 style={{ color: '#c9a84c', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <ShieldCheck size={20} /> Paiement sécurisé
+          <ShieldCheck size={20} /> Paiement sécurisé Paybox
         </h3>
         <p style={{ color: '#999', fontSize: '14px', margin: 0 }}>
           {formData.firstName} {formData.lastName} — {orderTotal.toFixed(2)} €
         </p>
       </div>
 
-      <div className="payment-logos" style={{ marginBottom: '24px' }}>
-        <span>💳 Carte bancaire</span>
-        <span>🅿️ PayPal</span>
-        <span>📱 Virement</span>
+      <div className="payment-logos" style={{ 
+        display: 'flex', 
+        gap: '12px', 
+        justifyContent: 'center',
+        marginBottom: '24px',
+        flexWrap: 'wrap'
+      }}>
+        <span style={{ 
+          background: 'rgba(255,255,255,0.05)', 
+          padding: '8px 16px', 
+          borderRadius: '6px',
+          border: '1px solid var(--border-gold)',
+          fontSize: '13px'
+        }}>💳 Carte bancaire</span>
+        <span style={{ 
+          background: 'rgba(255,255,255,0.05)', 
+          padding: '8px 16px', 
+          borderRadius: '6px',
+          border: '1px solid var(--border-gold)',
+          fontSize: '13px'
+        }}>VISA</span>
+        <span style={{ 
+          background: 'rgba(255,255,255,0.05)', 
+          padding: '8px 16px', 
+          borderRadius: '6px',
+          border: '1px solid var(--border-gold)',
+          fontSize: '13px'
+        }}>Mastercard</span>
+        <span style={{ 
+          background: 'rgba(255,255,255,0.05)', 
+          padding: '8px 16px', 
+          borderRadius: '6px',
+          border: '1px solid var(--border-gold)',
+          fontSize: '13px'
+        }}>CB</span>
+      </div>
+
+      <div style={{ 
+        background: 'rgba(16,185,129,0.08)', 
+        border: '1px solid rgba(16,185,129,0.3)', 
+        borderRadius: '8px', 
+        padding: '16px',
+        marginBottom: '24px'
+      }}>
+        <p style={{ color: '#10b981', fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShieldCheck size={16} />
+          Vous allez être redirigé vers le serveur de paiement sécurisé Paybox (Verifone).
+          Vos données bancaires sont protégées par un chiffrement SSL 256-bit.
+        </p>
       </div>
 
       <div className="checkout-nav" style={{ marginTop: '20px' }}>
         <button type="button" className="btn-secondary" onClick={onBack}>← Retour</button>
         <button type="submit" className="btn-primary" disabled={loading}>
-          <Lock size={14} /> {loading ? 'Traitement...' : `Confirmer la commande — ${orderTotal.toFixed(2)} €`}
+          <Lock size={14} /> {loading ? 'Redirection...' : `Payer ${orderTotal.toFixed(2)} €`}
         </button>
       </div>
     </form>
@@ -252,6 +351,9 @@ export default function CheckoutPage() {
               onSuccess={handleOrderSuccess}
               onBack={() => setStep(1)}
               formData={form}
+              items={items.map(i => ({ name: i.product.name, qty: i.qty, price: i.product.price }))}
+              orderId={orderId}
+              shippingCost={shippingCost}
             />
           )}
         </div>
