@@ -218,6 +218,8 @@ export default function Layout({ children }: { children: ReactNode }) {
             <Link to="/livraison">Livraison & retours</Link>
             <Link to="/faq">FAQ</Link>
             <Link to="/mentions-legales">Mentions légales</Link>
+            <Link to="/cgv">Conditions générales de vente</Link>
+            <Link to="/remboursement">Politique de remboursement</Link>
           </div>
           <div className="footer__col">
             <h4>Contact</h4>

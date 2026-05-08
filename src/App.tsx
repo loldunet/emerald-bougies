@@ -18,6 +18,8 @@ import AvisPage from './pages/AvisPage'
 import FaqPage from './pages/FaqPage'
 import MentionsLegalesPage from './pages/MentionsLegalesPage'
 import LivraisonPage from './pages/LivraisonPage'
+import CgvPage from './pages/CgvPage'
+import RemboursementPage from './pages/RemboursementPage'
 
 export default function App() {
   const [splash, setSplash] = useState(true)
@@ -46,6 +48,8 @@ export default function App() {
                 <Route path="/livraison" element={<LivraisonPage />} />
                 <Route path="/faq" element={<FaqPage />} />
                 <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
+                <Route path="/cgv" element={<CgvPage />} />
+                <Route path="/remboursement" element={<RemboursementPage />} />
               </Routes>
             </Layout>
           } />
