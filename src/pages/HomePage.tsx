@@ -1,62 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react'
-import { useCart } from '../context/CartContext'
-import { PRODUCTS, COLLECTIONS, TESTIMONIALS } from '../data/products'
-
-const ICON_DIAMOND = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L2 9l10 13L22 9Z"/>
-    <path d="M2 9h20"/>
-    <path d="M7 2l-5 7"/>
-    <path d="M17 2l5 7"/>
-    <path d="M7 2h10"/>
-    <path d="M12 2L8 9l4 13 4-13Z"/>
-  </svg>
-)
-
-const ICON_LEAF = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 20A7 7 0 0 1 4 13c0-5 4-9 9-10a9 9 0 0 1 7 7c0 5-4 8-9 10Z"/>
-    <path d="M4 13c4 0 7-1 9-3"/>
-    <path d="M4.5 18.5 11 20"/>
-  </svg>
-)
-
-const ICON_SPARKLE = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3v2"/>
-    <path d="M12 19v2"/>
-    <path d="M3 12h2"/>
-    <path d="M19 12h2"/>
-    <path d="M5.6 5.6l1.4 1.4"/>
-    <path d="M17 17l1.4 1.4"/>
-    <path d="M5.6 18.4l1.4-1.4"/>
-    <path d="M17 7l1.4-1.4"/>
-    <circle cx="12" cy="12" r="4"/>
-  </svg>
-)
-
-const ICON_HANDS = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/>
-    <path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/>
-    <path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/>
-    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34L4 19"/>
-    <path d="M14 14h1"/>
-    <path d="M10.5 11.5 12 13l1.5-1.5"/>
-  </svg>
-)
-
-const FEATURES = [
-  { icon: ICON_DIAMOND, title: 'Pierres naturelles', desc: 'Chaque bougie contient une pierre semi-précieuse sélectionnée pour ses propriétés énergétiques.' },
-  { icon: ICON_LEAF,    title: 'Cire végétale', desc: 'Fabriquées à base de cire de soja 100% naturelle, sans paraffine ni additifs chimiques.' },
-  { icon: ICON_SPARKLE, title: 'Énergie & bien-être', desc: 'Infusées d\'intentions et de vibrations positives pour élever l\'énergie de votre espace.' },
-  { icon: ICON_HANDS,   title: 'Fait main à La Réunion', desc: 'Chaque bougie est coulée, assemblée et contrôlée à la main dans notre atelier réunionnais.' },
-]
+import { COLLECTIONS, TESTIMONIALS } from '../data/products'
 
 export default function HomePage() {
-  const { addToCart } = useCart()
   const [testIdx, setTestIdx] = useState(0)
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
@@ -85,7 +32,7 @@ export default function HomePage() {
               <span className="hero__reunion-label-small">BOUGIE PARFUMÉE ARTISANALE</span>
             </div>
             
-            <Link to="/boutique" className="hero__reunion-btn">
+            <Link to="/produit/21" className="hero__reunion-btn">
               DÉCOUVRIR <ArrowRight size={18} />
             </Link>
             

@@ -7,7 +7,7 @@ import { API_URL } from '../config/api'
 
 function PaymentForm({ 
   orderTotal, 
-  onSuccess, 
+  onSuccess: _onSuccess, 
   onBack, 
   formData, 
   items,

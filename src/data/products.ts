@@ -253,9 +253,27 @@ export const PRODUCTS: Product[] = [
     badge: '♓', description: 'Les Poissons, signe d\'eau gouverné par Neptune, naviguent entre deux mondes avec une sensibilité infinie. L\'aigue-marine ouvre les portes de la spiritualité et de l\'empathie.',
     benefits: ['Spiritualité', 'Empathie', 'Rêve & vision', 'Compassion'], inStock: true,
   },
+  {
+    id: 21, name: 'La Réunion', subtitle: 'Île Intense, Âme Sauvage', price: 40, rating: 5, reviews: 12,
+    stone: 'Quartz fumé', stoneColor: '#5a5a5a', scents: ['Vanille Bourbon', 'Café', 'Santal', 'Ylang-Ylang'],
+    category: 'reunion', collection: 'Collection La Réunion',
+    img: '/hero-reunion-produit.jpg.png',
+    imgs: ['/hero-reunion-produit.jpg.png'],
+    badge: 'Nouveau', description: 'Un voyage sensoriel au cœur de La Réunion. Des senteurs boisées, épicées & exotiques pour une évasion unique. Infusée de quartz fumé pour l\'ancrage et la protection.',
+    benefits: ['Voyage & évasion', 'Parfum boisé & exotique', 'Ancrage énergétique', 'Fait main avec intention'], inStock: true,
+  },
 ]
 
 export const COLLECTIONS = [
+  {
+    id: 'reunion',
+    name: 'Collection La Réunion',
+    sub: 'Île Intense, Âme Sauvage',
+    img: '/hero-reunion-full.jpg.png',
+    imgPos: 'center center',
+    description: 'Un voyage sensoriel au cœur de l\'île de La Réunion. Des senteurs boisées, épicées et exotiques pour une évasion unique.',
+    count: 1,
+  },
   {
     id: 'dragons',
     name: 'Collection Dragon',
