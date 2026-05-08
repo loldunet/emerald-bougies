@@ -1,0 +1,12 @@
+INSTRUCTIONS POUR AJOUTER L'IMAGE :
+
+1. Sauvegardez l'image que vous avez uploadée sous le nom :
+   hero-reunion-full.jpg
+
+2. Placez-la dans le dossier :
+   c:\Users\matthieu\Desktop\emerald-bougies\public\
+
+3. Le CSS est déjà configuré pour l'utiliser automatiquement.
+
+Le fichier doit être :
+   public/hero-reunion-full.jpg

@@ -120,12 +120,6 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          
-          <div className="hero__reunion-visual">
-            <div className="hero__reunion-bougie">
-              <div className="hero__reunion-badge">BOUGIE PARFUMÉE<br/>ARTISANALE</div>
-            </div>
-          </div>
         </div>
         
         {/* Barre d'infos en bas */}
