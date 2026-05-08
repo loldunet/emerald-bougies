@@ -349,7 +349,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   background: var(--gold); opacity: 0;
   animation: float 6s infinite ease-in-out;
   left: calc(5% + var(--i, 0) * 8%);
-  top: calc(20% + (var(--i, 0) % 3) * 20%);
+  top: calc(20% + var(--i, 0) * 7%);
   animation-delay: calc(var(--i, 0) * .5s);
 }
 @keyframes float {
@@ -467,6 +467,254 @@ ul { list-style: none; margin: 0; padding: 0; }
   transition: color var(--t), border-color var(--t), background var(--t); flex-shrink: 0;
 }
 .btn-wish-lg:hover, .btn-wish-lg.active { color: var(--gold); border-color: var(--gold); background: rgba(201,168,76,.08); }
+
+/* ---------- HERO LA RÉUNION ---------- */
+.hero--reunion {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0a1f0a 0%, #051205 50%, #0d1f0d 100%);
+}
+.hero__reunion-bg {
+  position: absolute;
+  inset: 0;
+  background: url('/hero-reunion-bg.jpg') center/cover no-repeat;
+  opacity: 0.4;
+}
+.hero__reunion-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(5,18,5,0.95) 0%, rgba(10,31,10,0.85) 50%, rgba(5,18,5,0.9) 100%);
+}
+.hero__reunion-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 70% 50%, rgba(201,168,76,0.15) 0%, transparent 60%);
+}
+.hero__reunion-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 120px 80px 40px;
+  position: relative;
+  z-index: 2;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+.hero__reunion-text {
+  flex: 1;
+  max-width: 600px;
+}
+.hero__reunion-label {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.hero__reunion-title {
+  font-family: 'Cinzel', serif;
+  font-size: 72px;
+  color: var(--cream);
+  margin-bottom: 8px;
+  line-height: 1;
+  text-shadow: 0 2px 40px rgba(0,0,0,0.5);
+}
+.hero__reunion-subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
+  color: var(--gold);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+.hero__reunion-desc {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+.hero__reunion-price {
+  background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+  border: 1px solid rgba(201,168,76,0.4);
+  border-radius: 12px;
+  padding: 20px 28px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.hero__reunion-amount {
+  font-family: 'Cinzel', serif;
+  font-size: 42px;
+  color: var(--gold);
+  font-weight: 600;
+}
+.hero__reunion-label-small {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.hero__reunion-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: #0b160c;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+}
+.hero__reunion-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(201,168,76,0.4);
+}
+.hero__reunion-features {
+  display: flex;
+  gap: 24px;
+  margin-top: 40px;
+}
+.hero__reunion-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.hero__reunion-feature svg {
+  width: 28px;
+  height: 28px;
+  color: var(--gold);
+  stroke-width: 1.2;
+}
+.hero__reunion-feature span {
+  font-size: 11px;
+  color: var(--text-muted);
+  max-width: 80px;
+  line-height: 1.4;
+}
+.hero__reunion-visual {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.hero__reunion-bougie {
+  width: 400px;
+  height: 500px;
+  background: url('/bougie-reunion.png') center/contain no-repeat;
+  position: relative;
+  filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5));
+}
+.hero__reunion-badge {
+  position: absolute;
+  top: 40px;
+  right: -20px;
+  background: rgba(201,168,76,0.15);
+  border: 1px solid rgba(201,168,76,0.4);
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  line-height: 1.4;
+  backdrop-filter: blur(4px);
+}
+/* Barre infos en bas */
+.hero__reunion-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 24px 40px;
+  background: rgba(8,15,8,0.9);
+  border-top: 1px solid rgba(201,168,76,0.2);
+  position: relative;
+  z-index: 2;
+}
+.hero__reunion-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.hero__reunion-bar-item svg {
+  width: 28px;
+  height: 28px;
+  color: var(--gold);
+  stroke-width: 1.2;
+}
+.hero__reunion-bar-item div {
+  display: flex;
+  flex-direction: column;
+}
+.hero__reunion-bar-item strong {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: var(--cream);
+  text-transform: uppercase;
+}
+.hero__reunion-bar-item span {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+.hero__reunion-bar-divider {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.4), transparent);
+}
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero__reunion-content {
+    flex-direction: column;
+    padding: 100px 40px 40px;
+    text-align: center;
+  }
+  .hero__reunion-title { font-size: 48px; }
+  .hero__reunion-subtitle { font-size: 22px; }
+  .hero__reunion-features {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .hero__reunion-bougie {
+    width: 300px;
+    height: 380px;
+  }
+  .hero__reunion-bar {
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+  }
+  .hero__reunion-bar-divider { display: none; }
+}
+@media (max-width: 640px) {
+  .hero__reunion-title { font-size: 36px; }
+  .hero__reunion-subtitle { font-size: 18px; }
+  .hero__reunion-amount { font-size: 32px; }
+  .hero__reunion-features { gap: 12px; }
+  .hero__reunion-feature span { font-size: 10px; max-width: 70px; }
+  .hero__reunion-bougie { width: 260px; height: 320px; }
+}
 
 /* ---------- HOME: FEATURES TRUST ---------- */
 .features-trust {

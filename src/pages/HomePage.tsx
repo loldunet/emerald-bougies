@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Gift, ShoppingBag, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { ArrowRight, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { PRODUCTS, COLLECTIONS, TESTIMONIALS } from '../data/products'
 
@@ -57,98 +57,110 @@ const FEATURES = [
 
 export default function HomePage() {
   const { addToCart } = useCart()
-  const [heroQty, setHeroQty] = useState(1)
-  const [heroScent, setHeroScent] = useState('Bois de santal')
-  const [heroWish, setHeroWish] = useState(false)
   const [testIdx, setTestIdx] = useState(0)
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
-  const featured = PRODUCTS[0]
 
   return (
     <>
-      {/* ===== HERO ===== */}
-      <section className="hero">
-        <div className="hero__bg" />
-        <div className="hero__particles">
-          {Array.from({ length: 12 }, (_, i) => <span key={i} className="particle" style={{ '--i': i } as React.CSSProperties} />)}
+      {/* ===== HERO LA RÉUNION ===== */}
+      <section className="hero hero--reunion">
+        <div className="hero__reunion-bg">
+          <div className="hero__reunion-overlay" />
         </div>
-
-        <div className="hero__content">
-          <p className="hero__label">✦ Bougies artisanales</p>
-          <h1 className="hero__title">
-            L'art de la bougie artisanale,<br />
-            <em>l'âme de La Réunion</em>
-          </h1>
-          <p className="hero__subtitle">
-            Allumez votre rituel. Nos bougies aux pierres naturelles transforment votre espace en sanctuaire.
-          </p>
-          <div className="hero__features-row">
-            {FEATURES.slice(0, 4).map(f => (
-              <div className="hero__feature" key={f.title}>
-                <span className="hero__feature-icon hero__feature-icon--svg">{f.icon}</span>
-                <span>{f.title}</span>
+        
+        <div className="hero__reunion-content">
+          <div className="hero__reunion-text">
+            <span className="hero__reunion-label">NOUVELLE COLLECTION</span>
+            <h1 className="hero__reunion-title">LA RÉUNION</h1>
+            <p className="hero__reunion-subtitle">Île Intense, Âme Sauvage</p>
+            <p className="hero__reunion-desc">
+              Un voyage sensoriel au cœur de La Réunion.<br />
+              Des senteurs boisées, épicées & exotiques<br />
+              pour une évasion unique.
+            </p>
+            
+            <div className="hero__reunion-price">
+              <span className="hero__reunion-amount">40,00 €</span>
+              <span className="hero__reunion-label-small">BOUGIE PARFUMÉE ARTISANALE</span>
+            </div>
+            
+            <Link to="/boutique" className="hero__reunion-btn">
+              DÉCOUVRIR <ArrowRight size={18} />
+            </Link>
+            
+            <div className="hero__reunion-features">
+              <div className="hero__reunion-feature">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M11 20A7 7 0 0 1 4 13c0-5 4-9 9-10a9 9 0 0 1 7 7c0 5-4 8-9 10Z"/>
+                </svg>
+                <span>Cire Végétale Naturelle</span>
               </div>
-            ))}
+              <div className="hero__reunion-feature">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                  <path d="M2 12h20"/>
+                </svg>
+                <span>Parfums Exotiques</span>
+              </div>
+              <div className="hero__reunion-feature">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+                  <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+                  <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+                </svg>
+                <span>Fait Main avec Amour</span>
+              </div>
+              <div className="hero__reunion-feature">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2L2 9l10 13L22 9Z"/>
+                </svg>
+                <span>Inspirée de La Réunion</span>
+              </div>
+            </div>
           </div>
-          <div className="hero__ctas">
-            <Link to="/boutique" className="btn-primary">
-              Découvrir la boutique <ArrowRight size={15} />
-            </Link>
-            <Link to="/coffrets" className="btn-secondary">
-              <Gift size={15} /> Voir les coffrets
-            </Link>
+          
+          <div className="hero__reunion-visual">
+            <div className="hero__reunion-bougie">
+              <div className="hero__reunion-badge">BOUGIE PARFUMÉE<br/>ARTISANALE</div>
+            </div>
           </div>
         </div>
-
-        <div className="hero__center">
-          <div className="hero__candle-glow" />
-          <img
-            className="hero__candle-img"
-            src="/hero-candle.png"
-            alt="Bougie Emerald"
-          />
-          <div className="hero__360-label">
-            <span>→ 360°</span>
-            <small>Glissez pour faire tourner</small>
+        
+        {/* Barre d'infos en bas */}
+        <div className="hero__reunion-bar">
+          <div className="hero__reunion-bar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M11 20A7 7 0 0 1 4 13c0-5 4-9 9-10a9 9 0 0 1 7 7c0 5-4 8-9 10Z"/>
+            </svg>
+            <div>
+              <strong>CIRE 100% VÉGÉTALE</strong>
+              <span>RESPECTUEUSE DE L'ENVIRONNEMENT</span>
+            </div>
           </div>
-        </div>
-
-        <div className="hero__product-card">
-          <div className="hpc__name">{featured.name}</div>
-          <div className="hpc__sub">{featured.subtitle}</div>
-          <div className="hpc__stars">
-            {Array.from({ length: 5 }, (_, i) => (
-              <Star key={i} size={12} fill="var(--gold)" color="var(--gold)" />
-            ))}
-            <span>({featured.reviews} avis)</span>
+          <div className="hero__reunion-bar-divider" />
+          <div className="hero__reunion-bar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <div>
+              <strong>FAIT MAIN À LA RÉUNION</strong>
+              <span>AVEC INTENTION</span>
+            </div>
           </div>
-          <div className="hpc__price">{featured.price.toFixed(2)} €</div>
-
-          <label className="hpc__label">Pierre principale</label>
-          <div className="hpc__stone">
-            <span className="stone-dot" style={{ background: featured.stoneColor }} />
-            {featured.stone}
+          <div className="hero__reunion-bar-divider" />
+          <div className="hero__reunion-bar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="3" y="8" width="18" height="4" rx="2"/>
+              <path d="M12 8v13"/>
+              <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
+            </svg>
+            <div>
+              <strong>EMBALLAGE ÉLÉGANT</strong>
+              <span>IDÉE CADEAU PARFAITE</span>
+            </div>
           </div>
-
-          <label className="hpc__label">Parfum</label>
-          <select className="hpc__select" value={heroScent} onChange={e => setHeroScent(e.target.value)}>
-            {featured.scents.map(s => <option key={s}>{s}</option>)}
-          </select>
-
-          <label className="hpc__label">Quantité</label>
-          <div className="hpc__qty">
-            <button onClick={() => setHeroQty(q => Math.max(1, q - 1))}>−</button>
-            <span>{heroQty}</span>
-            <button onClick={() => setHeroQty(q => q + 1)}>+</button>
-          </div>
-
-          <button className="btn-cart" onClick={() => addToCart(featured, heroScent, heroQty)}>
-            <ShoppingBag size={14} /> Ajouter au panier
-          </button>
-          <button className={`btn-wishlist${heroWish ? ' active' : ''}`} onClick={() => setHeroWish(w => !w)}>
-            {heroWish ? '♥ Dans la wishlist' : '♡ Ajouter à la wishlist'}
-          </button>
         </div>
       </section>
 
