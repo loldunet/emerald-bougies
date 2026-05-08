@@ -227,7 +227,24 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         <div className="footer__bottom">
           <span>© {new Date().getFullYear()} Emerald Bougies – Fait avec 💛 à La Réunion</span>
-          <span>Tous droits réservés</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              background: 'rgba(16,185,129,0.15)', 
+              color: '#10b981', 
+              padding: '6px 12px', 
+              borderRadius: '6px', 
+              fontSize: '12px', 
+              fontWeight: 600,
+              border: '1px solid rgba(16,185,129,0.3)'
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Paiement 100% sécurisé
+            </span>
+            <span>Tous droits réservés</span>
+          </div>
         </div>
       </footer>
     </>
